@@ -1,13 +1,24 @@
 <template >
-  <div>1</div>
+  <swipe></swipe>
+  <p class="recommend-title">推荐歌单</p>
+  <Recommned></Recommned>
 </template>
 
 <style scoped>
-
+.recommend-title{
+  font-size: 34px;
+  padding-left: 18px;
+  margin-top: 28px;
+  margin-bottom: 28px;
+  line-height: 40px;
+}
 </style>
 <script lang="ts">
-import {  defineComponent  } from 'vue'; 
+import {  defineComponent  } from 'vue';
+import Swipe from "@/views/Home/swipe.vue";
+import Recommned from '@/views/Home/recommend.vue';
 export default defineComponent({
    name: 'index',
+  components: {Swipe,Recommned},
 });
 </script>
