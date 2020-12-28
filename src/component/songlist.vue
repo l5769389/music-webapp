@@ -22,13 +22,13 @@
 <style scoped lang="less">
   .container{
     width: 100%;
-    transform: translateY(-20px);
+
     border-radius: 30px;
     box-sizing: border-box;
-    background: white;
-    margin-top: 590px;
+    background: #F2F3F4;
     z-index: 1000;
     overflow: hidden;
+    padding-left: 30px;
     .btn-container,.item-container{
       display: flex;
       align-items: center;
@@ -36,7 +36,7 @@
     }
     .btn-container{
       height: 60px;
-      padding-top: 32px;
+      padding-top: 60px;
       box-sizing: border-box;
       >span{
         margin-left: 20px;

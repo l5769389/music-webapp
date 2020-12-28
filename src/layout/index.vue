@@ -2,16 +2,16 @@
   <div class="header-container">
     <div class="header">
       <div  class="icon-container">
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="showMy">
           <use xlink:href="#icon-zhedie"></use>
         </svg>
       </div>
       <div><span>Landing Guy</span></div>
-      <div  class="icon-container">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-chazhao"></use>
-        </svg>
-      </div>
+       <div  class="icon-container" @click="goToSearch">
+         <svg class="icon" aria-hidden="true">
+           <use xlink:href="#icon-chazhao"></use>
+         </svg>
+       </div>
     </div>
     <van-tabs v-model:active="activeName"
               :background="'#d44439'" :color="'white'"
@@ -58,15 +58,24 @@
 
 <script lang="ts">
 import {  defineComponent,ref } from 'vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 export default defineComponent({
    name: 'index',
   setup(){
     const route = useRoute();
+    const router = useRouter();
     const activeName = ref('');
     activeName.value = route.path;
+    const goToSearch =()=>{
+      router.push('/search')
+    }
+    const showMy=()=>{
+      router.push('/my');
+    }
     return {
       activeName,
+      goToSearch,
+      showMy,
     };
   }
 });

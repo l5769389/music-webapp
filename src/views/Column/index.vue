@@ -5,7 +5,10 @@
        <span>G.E.M.邓紫棋(G.E.M.)</span>
     </div>
   </div>
-  <songlist></songlist>
+  <div class="songlist-container">
+    <songlist></songlist>
+  </div>
+  <playbar></playbar>
 </template>
 
 <style scoped lang="less">
@@ -15,7 +18,7 @@
       height: 562px;
       width: 100%;
       z-index: 1;
-      filter:blur(0px) ;
+      filter:blur(px) ;
       background: center /cover  url("../../asset/imgs/column1.jpg");
       .desc{
         position: absolute;
@@ -26,15 +29,21 @@
         color: white;
       }
     }
+    .songlist-container{
+      margin-top: 560px;
+      border-radius: 50px;
+      transform: translateY(-30px);
+    }
 </style>
 <script lang="ts">
 import {defineComponent, ref,onMounted,onBeforeUnmount} from 'vue';
 import Songlist from "@/component/songlist.vue";
 import Back from "@/component/back.vue";
+import Playbar from "@/component/playbar.vue";
 
 export default defineComponent({
   name: 'index',
-  components: {Back, Songlist},
+  components: {Playbar, Back, Songlist},
   setup(){
     const containerRef = ref();
     const blurVal = ref(0);

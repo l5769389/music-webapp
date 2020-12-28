@@ -1,6 +1,6 @@
 <template >
   <div class="list-container">
-    <div class="list-item">
+    <div class="list-item" @click="goToColumn">
       <img src="@/asset/imgs/column1.jpg">
       <div class="icon-container">
         <svg class="icon" aria-hidden="true">
@@ -11,33 +11,6 @@
       <span class="column-desc">
           圣诞唱片店 | 节日专属的耳蜗仪式感四大分卫分为非是的撒登机牌
       </span>
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
     </div>
     <div class="list-item">
       <img src="@/asset/imgs/column1.jpg">
@@ -96,8 +69,18 @@
   }
 </style>
 <script lang="ts">
-import {  defineComponent  } from 'vue'; 
+import {  defineComponent  } from 'vue';
+import {useRouter} from "vue-router";
 export default defineComponent({
    name: 'recommend',
+  setup(){
+     const router = useRouter();
+     const  goToColumn = ()=>{
+       router.push('/column')
+     }
+    return {
+      goToColumn,
+    }
+  }
 });
 </script>
