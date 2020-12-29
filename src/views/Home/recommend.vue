@@ -1,23 +1,18 @@
 <template >
   <div class="list-container">
-    <div class="list-item" @click="goToColumn">
-      <img src="@/asset/imgs/column1.jpg">
+    <div class="list-item" v-for="item in list" :key="item" @click="goToColumn(item.id)">
+      <img v-lazy="item.picUrl">
       <div class="icon-container">
         <svg class="icon" aria-hidden="true">
           <use xlink:href="#icon-tingshu"></use>
         </svg>
-        <span>2176万</span>
+        <span>{{item.playCount}}万</span>
       </div>
       <span class="column-desc">
-          圣诞唱片店 | 节日专属的耳蜗仪式感四大分卫分为非是的撒登机牌
+          {{item.name}}
       </span>
     </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
-    <div class="list-item">
-      <img src="@/asset/imgs/column1.jpg">
-    </div>
+
   </div>
 </template>
 
@@ -69,17 +64,28 @@
   }
 </style>
 <script lang="ts">
-import {  defineComponent  } from 'vue';
+import {defineComponent, ref} from 'vue';
 import {useRouter} from "vue-router";
+import {getRecommendList} from "@/api/home";
 export default defineComponent({
    name: 'recommend',
   setup(){
      const router = useRouter();
-     const  goToColumn = ()=>{
-       router.push('/column')
+     const  goToColumn = (id: number)=>{
+       router.push(`/column/${id}`)
      }
+     const list = ref([]);
+     const _getColumnData = async ()=>{
+       const {data} = await getRecommendList();
+       list.value =  data.result.map((item: any)=>{
+         item.playCount =  Math.floor(item.playCount/10000);
+         return item;
+       })
+     }
+     _getColumnData();
     return {
       goToColumn,
+      list,
     }
   }
 });

@@ -1,69 +1,20 @@
 <template >
   <div class="container">
-
-    <div class="item-container">
-      <div class="img-container">
-        <img src="@/asset/imgs/column1.jpg">
-      </div>
-      <div class="list-container">
-          <span  v-for="(item,index) in songs" :key="item.name">
+    <p>官方榜单</p>
+    <div v-for="item in songs" :key="item">
+      <div class="item-container" >
+        <div class="img-container">
+          <img v-lazy="item.coverImgUrl">
+        </div>
+        <div class="list-container">
+          <span  v-for="(item1, index) in item.tracks" :key="item1">
             <span>{{index+1}}.</span>
-            <span>{{item.name}}-</span>
-            <span>{{item.singer}}</span>
+            <span>{{item1.first}}-</span>
+            <span>{{item1.second}}</span>
           </span>
         </div>
-    </div>
-    <van-divider />
-    <div class="item-container">
-      <div class="img-container">
-        <img src="@/asset/imgs/column1.jpg">
       </div>
-      <div class="list-container">
-          <span  v-for="(item,index) in songs" :key="item.name">
-            <span>{{index+1}}.</span>
-            <span>{{item.name}}-</span>
-            <span>{{item.singer}}</span>
-          </span>
-      </div>
-    </div>
-    <van-divider />
-    <div class="item-container">
-      <div class="img-container">
-        <img src="@/asset/imgs/column1.jpg">
-      </div>
-      <div class="list-container">
-          <span  v-for="(item,index) in songs" :key="item.name">
-            <span>{{index+1}}.</span>
-            <span>{{item.name}}-</span>
-            <span>{{item.singer}}</span>
-          </span>
-      </div>
-    </div>
-    <van-divider />
-    <div class="item-container">
-      <div class="img-container">
-        <img src="@/asset/imgs/column1.jpg">
-      </div>
-      <div class="list-container">
-          <span  v-for="(item,index) in songs" :key="item.name">
-            <span>{{index+1}}.</span>
-            <span>{{item.name}}-</span>
-            <span>{{item.singer}}</span>
-          </span>
-      </div>
-    </div>
-    <van-divider />
-    <div class="item-container">
-      <div class="img-container">
-        <img src="@/asset/imgs/column1.jpg">
-      </div>
-      <div class="list-container">
-          <span  v-for="(item,index) in songs" :key="item.name">
-            <span>{{index+1}}.</span>
-            <span>{{item.name}}-</span>
-            <span>{{item.singer}}</span>
-          </span>
-      </div>
+      <van-divider />
     </div>
   </div>
 </template>
@@ -73,17 +24,21 @@
     padding: 15px 10px;
     display: flex;
     flex-direction: column;
+    >p{
+      margin-bottom: 20px;
+    }
     .item-container{
       display: flex;
       height: 200px;
       align-items: center;
       .img-container{
         flex: 0 0 200px;
-        border-radius: 10%;
+        height: 100%;
         padding-left: 20px;
         img{
           width: 100%;
           object-fit: contain;
+          border-radius: 10%;
         }
       }
       .list-container{
@@ -99,6 +54,8 @@
           -webkit-line-clamp:1;
           overflow: hidden;
           -webkit-box-orient: vertical;
+          color: #888;
+          font-size: 28px;
 
         }
       }
@@ -106,24 +63,24 @@
   }
 </style>
 <script lang="ts">
-import {  defineComponent  } from 'vue';
+import {defineComponent, ref} from 'vue';
+import {getRank} from "@/api/rank";
 export default defineComponent({
    name: 'index',
   setup(){
-     const songs=[
-      {
-        name:'因为你，所以我',
-        singer:'五月天aaaaaaaaa'
-      },
-       {
-         name:'因为你，所以我',
-         singer:'五月天'
-       },
-       {
-         name:'因为你，所以我',
-         singer:'五月天'
-       }
-    ]
+     const songs=ref<any>([]);
+     const RankNameList=['飙升榜','新歌榜','热歌榜','原创榜','畅销榜'];
+   const _getRankData=async ()=>{
+       const {data:{list}} = await getRank();
+        const  needList: any[]= [];
+        list.forEach((item: any)=>{
+          if (RankNameList.includes(item.name)){
+            needList.push(item)
+          }
+        })
+     songs.value =needList;
+   }
+   _getRankData();
     return {
       songs
     }

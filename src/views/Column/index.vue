@@ -1,14 +1,15 @@
 <template>
+<!--专栏页面-->
   <back :showFlag="showFlag" :title="title"></back>
-  <div class="top-container-base" id="container"  :style="{height:backHeight+'vw'}" ref="containerRef">
+  <div class="top-container-base" id="container" v-lazy:background-image="playListObj.backgroundCoverUrl"  :style="{height:backHeight+'vw'}" ref="containerRef">
     <div class="desc" v-if="!showFlag">
-       <span>G.E.M.邓紫棋(G.E.M.)</span>
+       <span class="desc-content">{{playListObj.description}}</span>
+       <span class="frequency-container">{{playListObj.updateFrequency}}</span>
     </div>
   </div>
   <div class="songlist-container">
-    <songlist></songlist>
+    <songlist :tracks="playListObj.tracks"></songlist>
   </div>
-  <playbar></playbar>
 </template>
 
 <style scoped lang="less">
@@ -19,7 +20,9 @@
       width: 100%;
       z-index: 1;
       filter:blur(px) ;
-      background: center /cover  url("../../asset/imgs/column1.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+      //background: center /cover  url("../../asset/imgs/column1.jpg");
       .desc{
         position: absolute;
         left: 30px;
@@ -27,54 +30,91 @@
         font-size: 35px;
         font-weight: 800;
         color: white;
+        >.desc-content{
+          display: block;
+        }
+        .frequency-container{
+          display: inline-block;
+          background: hsla(0,0%,100%,.2);
+          color: hsla(0,0%,100%,.6);
+          padding-left: 6px;
+          padding-right: 6px;
+          border-radius: 4px;
+          font-size: 20px;
+          margin-top: 20px;
+        }
       }
     }
     .songlist-container{
       margin-top: 560px;
+     padding-bottom: 150px;
       border-radius: 50px;
       transform: translateY(-30px);
     }
 </style>
 <script lang="ts">
-import {defineComponent, ref,onMounted,onBeforeUnmount} from 'vue';
+import {defineComponent, ref, onMounted, onBeforeUnmount, reactive} from 'vue';
 import Songlist from "@/component/songlist.vue";
 import Back from "@/component/back.vue";
-import Playbar from "@/component/playbar.vue";
+
+import {useRoute} from "vue-router";
+import {getPlaylist} from "@/api/column";
 
 export default defineComponent({
   name: 'index',
-  components: {Playbar, Back, Songlist},
+  components: { Back, Songlist},
   setup(){
+    const route = useRoute();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const _ =require('lodash');
+    const id =route.params.id;
+    const playListObj = reactive({
+      backgroundCoverUrl:'',
+      description:'',
+      tracks:[],
+      updateFrequency:''
+    });
+    const _getData =async ()=>{
+     const {data} = await  getPlaylist(id);
+     console.log(data);
+     playListObj.description=data.playlist.description ||'';
+     playListObj.backgroundCoverUrl=data.playlist.backgroundCoverUrl;
+     playListObj.tracks=data.playlist.tracks;
+     playListObj.updateFrequency = data.playlist.updateFrequency;
+    }
+    _getData();
     const containerRef = ref();
     const blurVal = ref(0);
     const  backHeight =ref<number>(74.933333);
     const initHeight =74.933333;
     const showFlag = ref(false);
     const title=ref('xxxxx');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const _ =require('lodash');
+    const _handler =  _.throttle(()=>{
+      const scrollVw = document.documentElement.scrollTop/ 750 *100;
+      // 注意这里设置的高度值为获取到的2倍。否则会出现下面list组件内部文字滚出白色背景框的情况。
+      if (scrollVw>0 && scrollVw <26){
+        backHeight.value =initHeight-2*scrollVw;
+        blurVal.value = Math.min(scrollVw/initHeight *10,2);
+        const ele: HTMLElement |any =document.getElementById('container');
+        ele.style['-webkit-filter']=`blur(${blurVal.value}px)`;
+        showFlag.value = false;
+      }else if (scrollVw <=0){
+        blurVal.value=1;
+        showFlag.value = false;
+      }else {
+        // 到顶了
+        showFlag.value = true;
+        backHeight.value =initHeight-2*26;
+      }
+    },1);
     onMounted(()=>{
-      document.addEventListener('scroll', _.throttle(()=>{
-        const scrollVw = document.documentElement.scrollTop/ 750 *100;
-        // 注意这里设置的高度值为获取到的2倍。否则会出现下面list组件内部文字滚出白色背景框的情况。
-        console.log(scrollVw);
-        if (scrollVw>0 && scrollVw <26){
-          backHeight.value =initHeight-2*scrollVw;
-          blurVal.value = Math.min(scrollVw/initHeight *10,2);
-          const ele: HTMLElement |any =document.getElementById('container');
-          ele.style['-webkit-filter']=`blur(${blurVal.value}px)`;
-          showFlag.value = false;
-        }else if (scrollVw <=0){
-          blurVal.value=1;
-          showFlag.value = false;
-        }else {
-          // 到顶了
-          showFlag.value = true;
-          backHeight.value =initHeight-2*26;
-        }
-      },1))
+      document.addEventListener('scroll',_handler)
+    })
+    onBeforeUnmount(()=>{
+      document.removeEventListener('scroll',_handler)
     })
     return {
+      playListObj,
       backHeight,
       containerRef,
       blurVal,

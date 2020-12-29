@@ -4,12 +4,14 @@
                :autoplay="3000"
                indicator-color="white"
     >
-      <van-swipe-item v-for="item in images" :key="item">
+      <van-swipe-item v-for="item in bannerlist" :key="item">
         <div class="img-container">
-          <img :src="item">
+          <img v-lazy="{
+            src:item.pic,
+            loading:require(`../../common/default/swipe-loading.jpg`)
+          }">
         </div>
       </van-swipe-item>
-
     </van-swipe>
     <div class="background">
 
@@ -20,6 +22,7 @@
 <style scoped lang="less">
 .swipe-container{
   position: relative;
+  height: 380px;
   .my-swipe .van-swipe-item {
     color: #fff;
     height: 350px;
@@ -34,7 +37,7 @@
       border-radius: 20px;
       overflow: hidden;
       img{
-        width: 100%;
+        height: 100%;
         object-fit: contain;
       }
     }
@@ -50,19 +53,20 @@
 }
 </style>
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, ref} from 'vue';
+import {getBanner} from "@/api/home";
 
 export default defineComponent({
   name: 'swipe',
   setup(){
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const images=[
-      require('../../asset/imgs/1.webp'),
-      require('../../asset/imgs/2.webp'),
-      require('../../asset/imgs/3.webp'),
-    ];
+    const bannerlist =ref<object []>();
+   const _getBanner =async ()=>{
+    const {data} = await  getBanner();
+      bannerlist.value = data.banners;
+   }
+   _getBanner();
     return {
-      images,
+      bannerlist,
     }
   }
 });

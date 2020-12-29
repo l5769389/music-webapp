@@ -30,7 +30,7 @@ const routes: Array<RouteRecordRaw> = [
     ]
   },
   {
-    path:'/column',
+    path:'/column/:id',
     name:'Column',
     component:Column,
   },

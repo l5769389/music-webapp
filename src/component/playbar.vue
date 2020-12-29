@@ -1,12 +1,12 @@
 <template >
 <!-- 小型播放页-->
-  <div @click="showPlay" class="container">
+  <div @click="showPlay" v-if="showPlayBarFlag" class="container">
     <div class="img-container">
-      <img src="../asset/imgs/column1.jpg" :class="['rotate',!playFlag?'rotate-pause':'']">
+      <img v-lazy="readyPlayList[0].musicObj.picUrl" :class="['rotate',!playSongFlag?'rotate-pause':'']">
     </div>
     <div class="song-desc">
-      <span>梦醒时分</span>
-      <span>周华健</span>
+      <span>{{readyPlayList[0].musicObj.name}}</span>
+      <span>{{readyPlayList[0].musicObj.desc}}</span>
     </div>
     <div class="progress-container">
       <van-circle
@@ -17,23 +17,24 @@
           color="#d44439"
           size="40px"
       />
-      <van-icon v-if="!playFlag" class="icon"  name="play" size="25" @click.stop="triggerPlay" />
+      <van-icon v-if="!playSongFlag" class="icon"  name="play" size="25" @click.stop="triggerPlay" />
       <van-icon v-else class="icon" name="pause" size="25" @click.stop="triggerPause"/>
     </div>
     <van-icon name="bars" size="35" @click.stop="showModal"/>
   </div>
+<!--  播放列表页-->
   <van-popup v-model:show="showModalFlag"  class="modal" position="bottom" :style="{height:'60%'}" round>
         <div class="modal-header">
           <div>
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-xunhuan"></use>
             </svg>
-            <span>顺序播放(50首)</span>
+            <span>顺序播放({{readyPlayList.length}}首)</span>
             <van-icon name="delete" size="25" color="gray" @click.stop="deleteList"/>
           </div>
         </div>
         <div class="list-container">
-          <div class="item-container" v-for="(item,index) in songList" :key="item.name">
+          <div class="item-container" v-for="(item,index) in readyPlayList" :key="item">
              <div class="left">
                <van-icon v-if="index===1" class="listening" name="audio" color="#d44439" size="20"/>
                <span class="name">{{item.name}}</span>
@@ -45,9 +46,6 @@
         <div class="footer" @click.stop="()=>showModalFlag=false">
           <span>关闭</span>
         </div>
-  </van-popup>
-  <van-popup v-model:show="showPlayFlag" :style="{width:'100%',height:'100%'}">
-        <play-page @hide-song-play="hideSongPlay"></play-page>
   </van-popup>
 </template>
 <style scoped lang="less">
@@ -192,78 +190,51 @@
   }
 </style>
 <script lang="ts">
-import {  defineComponent,ref,computed } from 'vue';
+import {  defineComponent,ref,computed,watch,isRef } from 'vue';
 import {Dialog} from "vant";
 import PlayPage from "@/component/playPage.vue";
+import {useStore} from "vuex";
 export default defineComponent({
    name: 'playbar',
   components:{
-    PlayPage,
      [Dialog.Component.name]:Dialog.Component,
   },
   setup() {
+    const store =useStore();
+    // 从vuex中获取flag值。去决定组件的显示或者隐藏。
+    const showPlayBarFlag =computed(()=>store.getters. getPlayBarShowFlag);
+    const readyPlayList: any = computed(()=>store.getters.getReadyPlayList);
+    const playSongFlag = computed(()=>store.getters.getPlaySongFlag);
+    const nowPlayingIndex =computed(()=>store.getters.getNowPlayingIndex);
+    // 根据是否有待播放列表来控制playbar的显示和隐藏。
+    watch(readyPlayList.value,value => {
+      console.log(value);
+      if (value.length){
+        store.commit('setPlayBarShowFlag',true);
+      }else {
+        store.commit('setPlayBarShowFlag',false);
+      }
+    })
+    // 监听判断是否开始播放
+    watch(playSongFlag.value,value => {
+      console.log(value)
+    })
     const currentRate = ref(0);
     const text = computed(() => currentRate.value.toFixed(0) + '%');
-    const playFlag = ref(false);
+
     const showModalFlag = ref(false);
-    const showPlayFlag = ref(false);
     const showModal = ()=>{
       showModalFlag.value = true;
     };
-    const triggerPlay=()=>{playFlag.value = true};
-    const triggerPause=()=>{playFlag.value = false};
-    const songList=ref([
-      {
-        name:'好景不长好景不长好景不长好景不长好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长好景不长好景不长好景不长好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长好景不长好景不长好景不长好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      },
-      {
-        name:'好景不长',
-        singer:'陈奕迅'
-      }
-    ]);
+    const triggerPlay=()=>{
+      store.commit('setPlaySongFlag',true);
+    };
+    const triggerPause=()=>{
+      store.commit('setPlaySongFlag',false);
+
+    };
     const deleteSong = (index: number)=>{
-      songList.value.splice(0,1);
+       console.log(index)
     }
     const deleteList=()=>{
       Dialog.confirm({
@@ -271,7 +242,7 @@ export default defineComponent({
       })
           .then(() => {
             // on confirm
-            songList.value = [];
+           console.log()
           })
           .catch(() => {
             // on cancel
@@ -279,26 +250,21 @@ export default defineComponent({
     };
 
     const showPlay=()=>{
-      showPlayFlag.value = true;
-    }
-    const hideSongPlay=()=>{
-      console.log('trigger');
-      showPlayFlag.value = false;
+      store.commit('setPlayPageShowFlag',true);
     }
     return {
       text,
       currentRate,
-      playFlag,
+      playSongFlag,
       triggerPlay,
       triggerPause,
       showModal,
       showModalFlag,
-      songList,
       deleteSong,
       deleteList,
-      showPlayFlag,
       showPlay,
-      hideSongPlay,
+      showPlayBarFlag,
+      readyPlayList,
     };
   }
 });

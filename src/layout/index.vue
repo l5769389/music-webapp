@@ -27,6 +27,7 @@
   <div class="content">
     <router-view ></router-view>
   </div>
+
 </template>
 
 <style scoped lang="less">
@@ -35,7 +36,7 @@
     top: 0;
     width: 100%;
     height: 176px;
-    z-index: 10000;
+    z-index: 10;
     .header{
       height: 88px;
       background: #d44439;
@@ -59,6 +60,7 @@
 <script lang="ts">
 import {  defineComponent,ref } from 'vue';
 import {useRoute, useRouter} from "vue-router";
+
 export default defineComponent({
    name: 'index',
   setup(){
