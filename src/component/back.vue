@@ -1,8 +1,9 @@
 <template>
-  <div class="header">
+  <div :class="['header',showFlag?'active':'inactive']">
     <van-icon name="arrow-left" size="24" @click="goBack"/>
     <slot>
-      <span class="title">{{initTitle}}</span>
+      <span class="title" v-if="showFlag">{{mytitle}}</span>
+      <span class="title" v-else>{{init}}</span>
       <span></span>
     </slot>
   </div>
@@ -13,14 +14,13 @@
   height: 88px;
   width: 100%;
   font-size: 40px;
-  color: white;
   position: fixed;
   top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-
+  color: white;
   i{
     position: fixed;
     left: 0;
@@ -28,9 +28,15 @@
     z-index: 100;
   }
 }
+.active{
+  background: #d44439;
+}
+.inactive{
+
+}
 </style>
 <script lang="ts">
-import {defineComponent, ref, watch} from 'vue';
+import {computed, defineComponent, ref, watch} from 'vue';
 import {useRouter} from "vue-router";
 
 export default defineComponent({
@@ -40,24 +46,19 @@ export default defineComponent({
       type:Boolean,
       default:false
     },
+    initTitle:{
+      type:String,
+    },
     title:{
       type:String,
       default: ''
     }
   },
   setup(props){
-    const init = '你特么真鸡儿秀';
-    const initTitle = ref();
+    const init = computed(()=>props.initTitle);
+    const mytitle = computed(()=>props.title);
+    const flag = computed(()=>props.showFlag);
     const router = useRouter();
-    initTitle.value = init;
-    watch(()=>props.showFlag,value => {
-      if (value){
-        initTitle.value = props.title;
-      }else {
-        initTitle.value = init;
-      }
-
-    })
     const goBack = ()=>{
       if (window.history.length<=2){
         router.push('/')
@@ -66,7 +67,9 @@ export default defineComponent({
       }
     }
     return {
-      initTitle,
+      init,
+      flag,
+      mytitle,
       goBack,
     }
   }

@@ -5,8 +5,8 @@
       <div class="header">
         <van-icon name="arrow-down" @click="hideSongPlay" />
         <div>
-          <span>{{readyPlayList[0].musicObj.name}}</span>
-          <small>{{readyPlayList[0].musicObj.desc}}</small>
+          <span>{{readyPlayList[nowPlayingIndex].musicObj.name}}</span>
+          <small>{{readyPlayList[nowPlayingIndex].musicObj.desc}}</small>
         </div>
       </div>
       <div class="content">
@@ -17,16 +17,23 @@
       <div class="bottom">
         <div class="control-container">
           <div class="progress-container">
-            <span>0:00</span>
             <div>
-              <van-progress
-                  :percentage="75"
-                  pivot-text="紫色"
-                  pivot-color="#7232dd"
-                  color="linear-gradient(to right, #be99ff, #7232dd)"
-              />
+              <van-slider  active-color="#ee0a24" inactive-color="rgba(0,0,0,0.3)" bar-height="4px"
+                  v-model="progressPercent"
+                  @drag-start="ondragstart"
+                  @drag-end="ondragend"
+                  @update:model-value="onchangeNow"
+                  @change="onChange"
+                 >
+                <template #button>
+                  <!-- 正常播放时-->
+                  <div class="custom-button" v-show="!dragFlag">{{_timeFormatSecond(songtime.start)}}</div>
+                  <!-- 拖动时   -->
+                  <div class="custom-button" v-show="dragFlag">{{progressContent}}</div>
+                </template>
+              </van-slider>
             </div>
-            <span>0:00</span>
+            <span>{{_timeFormatSecond(songtime.end)}}</span>
           </div>
           <div class="scroll-container">
             <svg class="icon" aria-hidden="true">
@@ -39,14 +46,14 @@
             <!--            <use xlink:href="#icon-suiji"></use>-->
             <!--          </svg>-->
 
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true" @click="turnToPre">
               <use xlink:href="#icon-shangyishoushangyige"></use>
             </svg>
             <van-icon v-if="!playSongFlag" size="40" name="play-circle-o"  @click.stop="triggerPlay" />
             <van-icon v-else size="40" name="pause-circle-o"  @click.stop="triggerPause" />
 
 
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true" @click="turnToNext">
               <use xlink:href="#icon-xiayigexiayishou"></use>
             </svg>
             <van-icon v-if="!likeFlag" name="like-o" @click="like"/>
@@ -144,6 +151,9 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
+          >span{
+            flex: 0 0 80px;
+          }
           >div{
             flex: 1;
             margin-left: 20px;
@@ -153,8 +163,8 @@
         .scroll-container{
           display: flex;
           justify-content: space-between;
-          margin-top: 30px;
-          font-size: 50px;
+          margin-top: 40px;
+          font-size: 55px;
           align-items: center;
         }
       }
@@ -180,10 +190,23 @@
   .rotate-pause{
     animation-play-state: paused;
   }
+
+  .custom-button {
+    width: 120px;
+    color: #fff;
+    font-size: 36px;
+    line-height: 45px;
+    height: 45px;
+    text-align: center;
+    background-color: #ee0a24;
+    border-radius: 100px;
+  }
 </style>
 <script lang="ts">
-import {computed, defineComponent, ref, watch} from 'vue';
+import {computed, defineComponent, reactive, ref, watch} from 'vue';
 import {useStore} from "vuex";
+import {Toast} from "vant";
+import set = Reflect.set;
 
 export default defineComponent({
   name: 'playPage',
@@ -192,7 +215,40 @@ export default defineComponent({
     const showPlayPageFlag = computed(()=>store.getters.getPlayPageShowFlag);
     const readyPlayList: any = computed(()=>store.getters.getReadyPlayList);
     const playSongFlag = computed(()=>store.getters.getPlaySongFlag);
+    const dragFlag =ref(false);
     const nowPlayingIndex =computed(()=>store.getters.getNowPlayingIndex);
+    const songtime: any =computed(()=>store.getters.getSongtime);
+    const favoriteList: any =computed(()=>store.getters.getFavoriteList)
+    const progressPercent =ref<number>(0);
+    const progressContent: any = ref();
+    const likeFlag =ref(false);
+    watch(()=>songtime.value.start,(value: number) => {
+       try{
+         progressPercent.value =Number((value /songtime.value.end *100).toFixed(0))
+         console.log(progressPercent.value);
+       }catch (e){
+         progressPercent.value =0;
+       }
+    })
+    //进入页面设置收藏
+    function setStar(){
+     const index = favoriteList.value.findIndex((item: any)=>{
+        return item.id ===readyPlayList.value[nowPlayingIndex.value].id;
+      })
+      if (index!==-1){
+        likeFlag.value=true;
+      }else {
+        likeFlag.value=false;
+      }
+    }
+    setStar();
+    watch([nowPlayingIndex,()=>readyPlayList.value.length],([indexValue,listValue],[preIndex,prelistValue])=> {
+        if ( indexValue!== preIndex || listValue!== prelistValue){
+          setStar();
+        }else {
+          setStar();
+        }
+    })
     const hideSongPlay = ()=>{
       store.commit('setPlayPageShowFlag',false);
     }
@@ -203,12 +259,66 @@ export default defineComponent({
       store.commit('setPlaySongFlag',false);
 
     };
-    const likeFlag =ref(false);
+
     const like =()=>{
+      store.commit('addFavoriteList',readyPlayList.value[nowPlayingIndex.value].trackObj);
       likeFlag.value =true;
+      Toast.success('收藏成功');
     }
     const unlike=()=>{
+      const id =readyPlayList.value[nowPlayingIndex.value].id;
+      store.commit('removeFavoriteList',id);
       likeFlag.value =false;
+    }
+    function _timeFormatSecond(time: number){
+      return `${Math.floor(time/60).toString().padStart(2,'0')}:${(time%60).toFixed(0).toString().padStart(2,'0')}`
+    }
+    // 用户手动拖动时,
+    const onChange=(value: any)=>{
+      store.commit('setSongtime',{
+        start:value/100 * songtime.value.end,
+        end:songtime.value.end,
+      })
+    }
+    const onchangeNow=(value: any)=>{
+    const format = _timeFormatSecond(value/100 * songtime.value.end);
+    progressContent.value =format;
+    }
+    const  ondragstart=()=>{
+      dragFlag.value =true;
+      store.commit('setPlaySongFlag',false)
+    }
+    const ondragend=()=>{
+      dragFlag.value =false;
+      store.commit('setPlaySongFlag',true)
+    }
+    const turnToPre=()=>{
+      const target =nowPlayingIndex.value -1;
+      const len = readyPlayList.value.length;
+      if (len <=1){
+        Toast.fail('没有待播放歌曲');
+      }else {
+        store.commit('setPlaySongFlag',false)
+        if (target<0){
+          store.commit('setNowPlayingIndex',len-1)
+        }else {
+          store.commit('setNowPlayingIndex',target)
+        }
+      }
+    }
+    const turnToNext=()=>{
+      const target =nowPlayingIndex.value +1;
+      const len = readyPlayList.value.length;
+      if (len <=1){
+        Toast.fail('没有待播放歌曲');
+      }else {
+        store.commit('setPlaySongFlag',false)
+        if (target>len-1){
+          store.commit('setNowPlayingIndex',0)
+        }else {
+          store.commit('setNowPlayingIndex',target)
+        }
+      }
     }
     return {
       hideSongPlay,
@@ -220,6 +330,18 @@ export default defineComponent({
       like,
       unlike,
       likeFlag,
+      songtime,
+      _timeFormatSecond,
+      progressPercent,
+      onChange,
+      onchangeNow,
+      ondragstart,
+      ondragend,
+      dragFlag,
+      progressContent,
+      turnToPre,
+      turnToNext,
+      nowPlayingIndex,
     }
   }
 });

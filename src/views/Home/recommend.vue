@@ -37,7 +37,7 @@
         object-fit: contain;
       }
       .column-desc{
-        font-size: 13px;
+        font-size: 26px;
         line-height: 1.2;
         padding: 6px 2px 0 6px;
         display: -webkit-box;
@@ -72,7 +72,13 @@ export default defineComponent({
   setup(){
      const router = useRouter();
      const  goToColumn = (id: number)=>{
-       router.push(`/column/${id}`)
+       router.push({
+         path:'/column/',
+         query:{
+           tag:'歌单',
+           id:id
+         }
+       })
      }
      const list = ref([]);
      const _getColumnData = async ()=>{

@@ -12,6 +12,6 @@ app.use(Lazyload, {
     lazyComponent: true,
     loading:require('@/common/default/default.png'),
     error:require('@/common/default/swipe-loading.jpg'),
-    attempt:3
+    attempt:1
 });
 app.use(store).use(router).mount('#app')

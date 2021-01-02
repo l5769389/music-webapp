@@ -6,11 +6,12 @@
 
 <style scoped>
 .recommend-title{
-  font-size: 34px;
+  font-size: 40px;
   padding-left: 18px;
   margin-top: 28px;
   margin-bottom: 28px;
   line-height: 40px;
+  font-weight: 500;
 }
 </style>
 <script lang="ts">

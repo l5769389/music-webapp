@@ -2,16 +2,16 @@
 <!-- 小型播放页-->
   <div @click="showPlay" v-if="showPlayBarFlag" class="container">
     <div class="img-container">
-      <img v-lazy="readyPlayList[0].musicObj.picUrl" :class="['rotate',!playSongFlag?'rotate-pause':'']">
+      <img v-lazy="readyPlayList[nowPlayingIndex].musicObj.picUrl" :class="['rotate',!playSongFlag?'rotate-pause':'']">
     </div>
     <div class="song-desc">
-      <span>{{readyPlayList[0].musicObj.name}}</span>
-      <span>{{readyPlayList[0].musicObj.desc}}</span>
+      <span >{{readyPlayList[nowPlayingIndex].musicObj.name}}</span>
+      <small>{{readyPlayList[nowPlayingIndex].musicObj.desc}}</small>
     </div>
     <div class="progress-container">
       <van-circle
           v-model:current-rate="currentRate"
-          :rate="50"
+          :rate="percentNow"
           :stroke-width="70"
           layer-color="rgba(19,19,19,0.6)"
           color="#d44439"
@@ -36,10 +36,12 @@
         <div class="list-container">
           <div class="item-container" v-for="(item,index) in readyPlayList" :key="item">
              <div class="left">
-               <van-icon v-if="index===1" class="listening" name="audio" color="#d44439" size="20"/>
-               <span class="name">{{item.name}}</span>
+               <van-icon v-if="index===nowPlayingIndex" class="listening" name="audio" color="#d44439" size="20"/>
+               <span :class="['name',index===nowPlayingIndex?'active':'']">
+                 <span>{{item.musicObj.name}}</span>
+                 <small :class="[index===nowPlayingIndex?'active':'inactive']">{{item.musicObj.desc}}</small>
+               </span>
              </div>
-            <small>{{item.singer}}</small>
             <van-icon  name="cross" color="#d44439" size="20" @click.stop="deleteSong(index)"/>
           </div>
         </div>
@@ -77,6 +79,20 @@
       flex-direction: column;
       font-size: 28px;
       line-height: 1.2;
+      >span,small{
+        width: 100%;
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp:1;
+        -webkit-box-orient: vertical;
+      }
+      >span:first-child{
+        margin-bottom: 8px;
+      }
+      small{
+        color: gray;
+      }
+
     }
     .progress-container{
       height: 100%;
@@ -136,7 +152,7 @@
         }
         i{
           position: absolute;
-          right: 20px;
+          right: 0px;
         }
       }
     }
@@ -150,25 +166,35 @@
         display: flex;
         position: relative;
         align-items: center;
-        .listening{
-          margin-right: 20px;
-        }
         .left{
-          margin-right: 20px;
+          margin-right: 60px;
           font-size: 30px;
-          width: 400px;
+          flex: 1;
           display: flex;
-          span{
+          align-items: center;
+          .listening{
+            margin-right: 20px;
+          }
+          .name{
             flex: 1;
+            display: -webkit-box;
             -webkit-line-clamp:1;
             overflow: hidden;
             -webkit-box-orient: vertical;
-            display: -webkit-box;
+            line-height: 1.5;
+            small{
+              font-size: 20px;
+              display: inline-block;
+            }
+          }
+          .active{
+            color: #d44439;
+          }
+          .inactive{
+            color: gray;
           }
         }
-        small{
-          font-size: 20px;
-        }
+
         i:last-child{
           position: absolute;
           right: 0;
@@ -191,7 +217,7 @@
 </style>
 <script lang="ts">
 import {  defineComponent,ref,computed,watch,isRef } from 'vue';
-import {Dialog} from "vant";
+import {Dialog, Toast} from "vant";
 import PlayPage from "@/component/playPage.vue";
 import {useStore} from "vuex";
 export default defineComponent({
@@ -206,9 +232,9 @@ export default defineComponent({
     const readyPlayList: any = computed(()=>store.getters.getReadyPlayList);
     const playSongFlag = computed(()=>store.getters.getPlaySongFlag);
     const nowPlayingIndex =computed(()=>store.getters.getNowPlayingIndex);
+    const songtime: any =computed(()=>store.getters.getSongtime);
     // 根据是否有待播放列表来控制playbar的显示和隐藏。
     watch(readyPlayList.value,value => {
-      console.log(value);
       if (value.length){
         store.commit('setPlayBarShowFlag',true);
       }else {
@@ -220,7 +246,16 @@ export default defineComponent({
       console.log(value)
     })
     const currentRate = ref(0);
-    const text = computed(() => currentRate.value.toFixed(0) + '%');
+    const percentNow = ref(0);
+    watch(()=>songtime.value.start,(value: number) => {
+      try{
+        percentNow.value =Number((value /songtime.value.end *100).toFixed(0))
+      }catch (e){
+        percentNow.value =0;
+      }
+    })
+
+    const text = computed(() => percentNow.value.toFixed(0) + '%');
 
     const showModalFlag = ref(false);
     const showModal = ()=>{
@@ -234,15 +269,21 @@ export default defineComponent({
 
     };
     const deleteSong = (index: number)=>{
-       console.log(index)
+      // 如果删除歌曲是当前，那么要暂停一下PlaySongFlag，来触发播放。
+      store.commit('setPlaySongFlag',false);
+      store.commit('deleteReadyPlayListByIndex',index);
     }
     const deleteList=()=>{
+      if (readyPlayList.value.length <=1){
+        Toast('没有可删除项')
+        return ;
+      }
       Dialog.confirm({
         title: '确定清空播放列表么',
       })
           .then(() => {
             // on confirm
-           console.log()
+            store.commit('deleteReadyPlayListAll');
           })
           .catch(() => {
             // on cancel
@@ -265,6 +306,9 @@ export default defineComponent({
       showPlay,
       showPlayBarFlag,
       readyPlayList,
+      nowPlayingIndex,
+      percentNow,
+
     };
   }
 });

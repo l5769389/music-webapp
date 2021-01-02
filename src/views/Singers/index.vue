@@ -2,7 +2,7 @@
   <div class="container">
     <van-index-bar :index-list="indexList" :sticky-offset-top="88">
       <van-index-anchor index="热">热门</van-index-anchor>
-      <van-cell class="item-container" v-for="item in hostList" :key="item">
+      <van-cell class="item-container"  v-for="item in hostList" :key="item" @click="goToColumn(item)">
          <div class="content">
            <div class="avatar-container">
              <img v-lazy="item.picUrl"/>
@@ -61,6 +61,8 @@
 <script lang="ts">
 import {defineComponent, ref} from 'vue';
 import {getSingerList} from "@/api/singer";
+import {useRouter} from "vue-router";
+import {useStore} from "vuex";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pinyin = require('pinyin');
 export default defineComponent({
@@ -68,6 +70,8 @@ export default defineComponent({
   setup() {
      const  indexList='热ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
      const singList= ref();
+     const router =useRouter();
+     const store = useStore();
      const hostList= ref([]);
      let rawList: any =[];
      function handler(){
@@ -93,15 +97,25 @@ export default defineComponent({
     }
      const _getList =async ()=>{
        const {data} = await getSingerList();
+       console.log(data);
        rawList =data.artists;
        handler();
      }
     _getList();
-
+     const goToColumn=(item: any)=>{
+       router.push({
+         path:'/column/',
+         query:{
+           tag:'歌手',
+           id:item.id
+         }
+       })
+     }
     return {
      indexList,
       singList,
       hostList,
+      goToColumn,
     };
   },
 });

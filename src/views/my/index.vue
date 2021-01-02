@@ -8,10 +8,12 @@
               :line-height="'4px'"
     >
       <van-tab title="我的收藏" name="/favarite" >
-          <favorite></favorite>
+          <div>
+            <favorite></favorite>
+          </div>
       </van-tab>
-      <van-tab title="最近播放" name="/recent" >
-        <recent></recent>
+      <van-tab title="最近播放" name="/recent" class="wrapper">
+            <recent></recent>
       </van-tab>
     </van-tabs>
   </div>
@@ -29,6 +31,9 @@
       z-index: 100;
     }
   }
+  .wrapper{
+    padding-bottom: 100px;
+  }
 </style>
 <script lang="ts">
 import {  defineComponent,ref } from 'vue';
@@ -43,8 +48,6 @@ export default defineComponent({
   setup() {
     const active = ref(2);
     const router = useRouter();
-    const route = useRoute();
-    console.log(window.history.length);
     const goBack = ()=>{
      if (window.history.length<=2){
        router.push('/')

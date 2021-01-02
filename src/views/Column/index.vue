@@ -4,14 +4,14 @@
   <div class="top-container-base" id="container" v-lazy:background-image="playListObj.backgroundCoverUrl"  :style="{height:backHeight+'vw'}" ref="containerRef">
     <div class="desc" v-if="!showFlag">
        <span class="desc-content">{{playListObj.description}}</span>
-       <span class="frequency-container">{{playListObj.updateFrequency}}</span>
+       <span v-if="playListObj.updateFrequency" class="frequency-container">{{playListObj.updateFrequency}}</span>
     </div>
+    <div class="filter"></div>
   </div>
   <div class="songlist-container">
     <songlist :tracks="playListObj.tracks"></songlist>
   </div>
 </template>
-
 <style scoped lang="less">
     .top-container-base{
       position: fixed;
@@ -22,7 +22,6 @@
       filter:blur(px) ;
       background-size: cover;
       background-repeat: no-repeat;
-      //background: center /cover  url("../../asset/imgs/column1.jpg");
       .desc{
         position: absolute;
         left: 30px;
@@ -30,8 +29,16 @@
         font-size: 35px;
         font-weight: 800;
         color: white;
+        box-sizing: border-box;
+        padding-right: 100px;
         >.desc-content{
-          display: block;
+          display: -webkit-box;
+          -webkit-line-clamp:2;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          font-size: 32px;
+          font-weight: 500;
+          line-height: 1.2;
         }
         .frequency-container{
           display: inline-block;
@@ -44,10 +51,14 @@
           margin-top: 20px;
         }
       }
+      .filter{
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.2);
+      }
     }
     .songlist-container{
       margin-top: 560px;
-     padding-bottom: 150px;
       border-radius: 50px;
       transform: translateY(-30px);
     }
@@ -58,8 +69,8 @@ import Songlist from "@/component/songlist.vue";
 import Back from "@/component/back.vue";
 
 import {useRoute} from "vue-router";
-import {getPlaylist} from "@/api/column";
-
+import {getPlaylist, getSingerDesc, getSingerTopList} from "@/api/column";
+import {useStore} from "vuex";
 export default defineComponent({
   name: 'index',
   components: { Back, Songlist},
@@ -67,32 +78,49 @@ export default defineComponent({
     const route = useRoute();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const _ =require('lodash');
-    const id =route.params.id;
+    const store = useStore();
+    const {tag,id} = route.query;
+    const showFlag = ref(false);
+    const  initTitle= ref('');
+    const title=ref<any>('');
     const playListObj = reactive({
       backgroundCoverUrl:'',
       description:'',
       tracks:[],
       updateFrequency:''
     });
+    // 获取专栏歌曲
     const _getData =async ()=>{
-     const {data} = await  getPlaylist(id);
-     console.log(data);
-     playListObj.description=data.playlist.description ||'';
-     playListObj.backgroundCoverUrl=data.playlist.backgroundCoverUrl;
-     playListObj.tracks=data.playlist.tracks;
-     playListObj.updateFrequency = data.playlist.updateFrequency;
+      const {data:content} = await  getPlaylist(id);
+      console.log(content);
+      playListObj.description=content.playlist.description ||'';
+      playListObj.backgroundCoverUrl=content.playlist.coverImgUrl;
+      playListObj.tracks=content.playlist.tracks;
+      playListObj.updateFrequency = content.playlist.updateFrequency;
+      title.value =tag;
     }
-    _getData();
+    const _getSingerData =async ()=>{
+    const {data} =await getSingerTopList(id);
+    const {data: desc}=await getSingerDesc(id);
+    playListObj.backgroundCoverUrl= desc.data.artist.cover;
+    playListObj.description = desc.data.artist.name;
+    playListObj.tracks =data.songs;
+    title.value = desc.data.artist.name;
+    }
+    // 根据id的长短判断是歌手的详情页，还是歌单详情页
+    if (tag === '歌手'){
+      _getSingerData();
+    }else {
+      _getData();
+    }
     const containerRef = ref();
     const blurVal = ref(0);
     const  backHeight =ref<number>(74.933333);
     const initHeight =74.933333;
-    const showFlag = ref(false);
-    const title=ref('xxxxx');
     const _handler =  _.throttle(()=>{
       const scrollVw = document.documentElement.scrollTop/ 750 *100;
       // 注意这里设置的高度值为获取到的2倍。否则会出现下面list组件内部文字滚出白色背景框的情况。
-      if (scrollVw>0 && scrollVw <26){
+      if (scrollVw>0 && scrollVw <32){
         backHeight.value =initHeight-2*scrollVw;
         blurVal.value = Math.min(scrollVw/initHeight *10,2);
         const ele: HTMLElement |any =document.getElementById('container');
@@ -104,7 +132,7 @@ export default defineComponent({
       }else {
         // 到顶了
         showFlag.value = true;
-        backHeight.value =initHeight-2*26;
+        backHeight.value =initHeight-2*32;
       }
     },1);
     onMounted(()=>{

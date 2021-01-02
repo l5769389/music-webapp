@@ -1,7 +1,7 @@
 <template >
   <div class="container">
     <p>官方榜单</p>
-    <div v-for="item in songs" :key="item">
+    <div v-for="item in songs" :key="item" @click="gotoColumn(item.id)">
       <div class="item-container" >
         <div class="img-container">
           <img v-lazy="item.coverImgUrl">
@@ -56,7 +56,6 @@
           -webkit-box-orient: vertical;
           color: #888;
           font-size: 28px;
-
         }
       }
     }
@@ -65,10 +64,12 @@
 <script lang="ts">
 import {defineComponent, ref} from 'vue';
 import {getRank} from "@/api/rank";
+import {useRouter} from "vue-router";
 export default defineComponent({
    name: 'index',
   setup(){
      const songs=ref<any>([]);
+     const router = useRouter();
      const RankNameList=['飙升榜','新歌榜','热歌榜','原创榜','畅销榜'];
    const _getRankData=async ()=>{
        const {data:{list}} = await getRank();
@@ -81,8 +82,18 @@ export default defineComponent({
      songs.value =needList;
    }
    _getRankData();
+   const gotoColumn=(id: any)=>{
+     router.push({
+       path:`/column/`,
+       query:{
+         tag:`飙升榜`,
+         id:id,
+       }
+     })
+   }
     return {
-      songs
+      songs,
+      gotoColumn,
     }
 
   }

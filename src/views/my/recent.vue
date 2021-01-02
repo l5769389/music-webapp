@@ -1,15 +1,23 @@
 <template>
-<songlist></songlist>
+     <songlist :tracks="recentList"></songlist>
 </template>
 
-<style scoped>
-
+<style scoped lang="less">
 </style>
 <script lang="ts">
-import {  defineComponent  } from 'vue';
+import {computed, defineComponent, ref, watch} from 'vue';
 import Songlist from "@/component/songlist.vue";
+import {useStore} from "vuex";
+
 export default defineComponent({
-   name: 'recent',
+  name: 'recent',
   components: {Songlist},
+  setup() {
+    const state = useStore();
+    const recentList =computed(()=>state.getters.getRecentPlayList)
+    return {
+      recentList,
+    }
+  }
 });
 </script>
