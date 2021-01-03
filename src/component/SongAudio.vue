@@ -63,8 +63,10 @@ export default defineComponent({
     })
     const onended =()=>{
       store.commit('setPlaySongFlag',false);
-      const tempIndex: number =nowPlayingIndex.value+1;
-      store.commit('setNowPlayingIndex',tempIndex)
+      if (nowPlayingIndex.value<readyPlayList.value.length-1){
+        const tempIndex: number =nowPlayingIndex.value+1;
+        store.commit('setNowPlayingIndex',tempIndex)
+      }
     }
     const onplay =()=>{
       console.log('onplay')
@@ -77,8 +79,6 @@ export default defineComponent({
       store.commit('setSongtime',songtime)
     }
     const  ontimeupdate=(res: any)=>{
-      console.log('onupdate');
-      console.log(res);
       songtime.start =res.target.currentTime;
       store.commit('setSongtime',songtime)
     }

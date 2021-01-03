@@ -1,17 +1,20 @@
 <template>
 <!--  播放主界面-->
-  <div class="play-wrapper" v-if="showPlayPageFlag">
-    <div class="back-container" >
+  <div class="play-wrapper" v-show="showPlayPageFlag">
+    <div class="back-container"  v-if="readyPlayList.length">
       <div class="header">
         <van-icon name="arrow-down" @click="hideSongPlay" />
-        <div>
+        <div class="song-container">
           <span>{{readyPlayList[nowPlayingIndex].musicObj.name}}</span>
           <small>{{readyPlayList[nowPlayingIndex].musicObj.desc}}</small>
         </div>
       </div>
       <div class="content">
-        <div class="wrapper" :class="['rotate',!playSongFlag?'rotate-pause':'']">
+        <div v-show="!lyricFlag" class="wrapper" @click="triggerChange" :class="['rotate',!playSongFlag?'rotate-pause':'']">
           <img v-lazy="readyPlayList[0].musicObj.picUrl">
+        </div>
+        <div v-show="lyricFlag" class="lyric-container" @click="triggerChange">
+            <lyric :id="readyPlayList[nowPlayingIndex].id"></lyric>
         </div>
       </div>
       <div class="bottom">
@@ -99,9 +102,9 @@
       flex: 0 0 140px;
       order: 1;
       display: flex;
-      align-items: center;
       box-sizing: border-box;
       justify-content: center;
+      align-items: center;
       position: relative;
       i{
         font-size: 60px;
@@ -111,11 +114,29 @@
       >div{
         display: flex;
         flex-direction: column;
+        width:500px;
+        height:80px;
         align-items: center;
+        justify-content: space-between;
+        span,small{
+          display: -webkit-box;
+          -webkit-line-clamp:1;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          width: 100%;
+          text-align: center;
+        }
         >span:first-child{
-          font-size: 36px;
-          font-weight: 600;
-          margin-bottom: 10px;
+          height: 45px;
+          line-height: 45px;
+          font-size: 38px;
+          font-weight: 500;
+        }
+        small{
+          height: 24px;
+          line-height: 24px;
+          font-size: 24px;
+          color: gray;
         }
       }
     }
@@ -136,7 +157,11 @@
           height: 100%;
           border-radius: 50%;
         }
-
+      }
+      .lyric-container{
+        width: 100%;
+        height: 700px;
+        overflow: hidden;
       }
     }
     .bottom{
@@ -207,9 +232,11 @@ import {computed, defineComponent, reactive, ref, watch} from 'vue';
 import {useStore} from "vuex";
 import {Toast} from "vant";
 import set = Reflect.set;
+import Lyric from "@/component/lyric.vue";
 
 export default defineComponent({
   name: 'playPage',
+  components: {Lyric},
   setup(props,context){
     const store = useStore();
     const showPlayPageFlag = computed(()=>store.getters.getPlayPageShowFlag);
@@ -225,7 +252,6 @@ export default defineComponent({
     watch(()=>songtime.value.start,(value: number) => {
        try{
          progressPercent.value =Number((value /songtime.value.end *100).toFixed(0))
-         console.log(progressPercent.value);
        }catch (e){
          progressPercent.value =0;
        }
@@ -295,6 +321,7 @@ export default defineComponent({
     const turnToPre=()=>{
       const target =nowPlayingIndex.value -1;
       const len = readyPlayList.value.length;
+
       if (len <=1){
         Toast.fail('没有待播放歌曲');
       }else {
@@ -320,6 +347,10 @@ export default defineComponent({
         }
       }
     }
+    const lyricFlag =ref(false);
+    const triggerChange=()=>{
+      lyricFlag.value =!lyricFlag.value;
+    }
     return {
       hideSongPlay,
       showPlayPageFlag,
@@ -342,6 +373,8 @@ export default defineComponent({
       turnToPre,
       turnToNext,
       nowPlayingIndex,
+      lyricFlag,
+      triggerChange,
     }
   }
 });

@@ -42,7 +42,6 @@
     .btn-container,.item-container{
       display: flex;
       align-items: center;
-
     }
     .btn-container{
       height: 60px;
@@ -69,8 +68,10 @@
         .name{
           flex: 0 0 55px;
           line-height: 55px;
+          width: 100%;
+          display: flex;
+          flex-wrap: nowrap;
           span{
-            display: inline-block;
             display: -webkit-box;
             overflow: hidden;
             -webkit-line-clamp:1;
@@ -78,7 +79,7 @@
           }
           small{
             font-size: 28px;
-            display: inline-block;
+            display: inline;
           }
         }
         .active{
