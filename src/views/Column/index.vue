@@ -11,6 +11,9 @@
   <div class="songlist-container">
     <songlist :tracks="playListObj.tracks"></songlist>
   </div>
+  <van-overlay :show="showLoading" @click="showModalFlag = false" style="display: flex;justify-content: center;align-items: center">
+    <van-loading color="#d44439" />
+  </van-overlay>
 </template>
 <style scoped lang="less">
     .top-container-base{
@@ -61,21 +64,25 @@
       margin-top: 560px;
       border-radius: 50px;
       transform: translateY(-30px);
+      padding-bottom: 120px;
     }
 </style>
 <script lang="ts">
-import {defineComponent, ref, onMounted, onBeforeUnmount, reactive} from 'vue';
+import {defineComponent, ref, onMounted, onBeforeUnmount, reactive, watch} from 'vue';
 import Songlist from "@/component/songlist.vue";
 import Back from "@/component/back.vue";
 
 import {useRoute} from "vue-router";
 import {getPlaylist, getSingerDesc, getSingerTopList} from "@/api/column";
 import {useStore} from "vuex";
+import {Toast} from "vant";
 export default defineComponent({
   name: 'index',
   components: { Back, Songlist},
   setup(){
     const route = useRoute();
+    const showLoading =ref(false);
+    showLoading.value =true;
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const _ =require('lodash');
     const store = useStore();
@@ -92,7 +99,7 @@ export default defineComponent({
     // 获取专栏歌曲
     const _getData =async ()=>{
       const {data:content} = await  getPlaylist(id);
-      console.log(content);
+      showLoading.value=false;
       playListObj.description=content.playlist.description ||'';
       playListObj.backgroundCoverUrl=content.playlist.coverImgUrl;
       playListObj.tracks=content.playlist.tracks;
@@ -102,6 +109,7 @@ export default defineComponent({
     const _getSingerData =async ()=>{
     const {data} =await getSingerTopList(id);
     const {data: desc}=await getSingerDesc(id);
+    showLoading.value=false;
     playListObj.backgroundCoverUrl= desc.data.artist.cover;
     playListObj.description = desc.data.artist.name;
     playListObj.tracks =data.songs;
@@ -141,6 +149,16 @@ export default defineComponent({
     onBeforeUnmount(()=>{
       document.removeEventListener('scroll',_handler)
     })
+    watch(showLoading,value => {
+      if (value ===true){
+        setTimeout(()=>{
+          if (value ===true){
+            showLoading.value =false;
+            Toast.fail('网络出错，请重试')
+          }
+        },2000)
+      }
+    })
     return {
       playListObj,
       backHeight,
@@ -148,6 +166,7 @@ export default defineComponent({
       blurVal,
       showFlag,
       title,
+      showLoading,
     }
   }
 });

@@ -1,7 +1,7 @@
 <template>
 <!--  播放主界面-->
   <div class="play-wrapper" v-show="showPlayPageFlag">
-    <div class="back-container"  v-if="readyPlayList.length">
+    <div class="back-container"  v-if="readyPlayList.length" >
       <div class="header">
         <van-icon name="arrow-down" @click="hideSongPlay" />
         <div class="song-container">
@@ -65,6 +65,8 @@
         </div>
       </div>
     </div>
+    <div class="back-wrapper"   v-if="readyPlayList.length"  v-lazy:background-image="readyPlayList[nowPlayingIndex].musicObj.picUrl"></div>
+    <div class="back-wrapper1"  ></div>
   </div>
 </template>
 
@@ -85,19 +87,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    &::after{
-      content: '';
-      display: block;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-      background:url("http://static.galileo.xiaojukeji.com/static/tms/seller_avatar_256px.jpg") no-repeat center;
-      background-size: cover;
-      opacity: 0.3;
-      z-index: -100;
-    }
+
     .header{
       flex: 0 0 140px;
       order: 1;
@@ -131,12 +121,13 @@
           line-height: 45px;
           font-size: 38px;
           font-weight: 500;
+          color: white;
         }
         small{
           height: 24px;
           line-height: 24px;
           font-size: 24px;
-          color: gray;
+          color: whitesmoke;
         }
       }
     }
@@ -194,6 +185,24 @@
         }
       }
     }
+  }
+  .back-wrapper{
+    filter: blur(34px);
+    z-index: -100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .back-wrapper1{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.2);
+    z-index: -99;
   }
   @keyframes rotate {
     0% {

@@ -16,6 +16,9 @@
       </div>
       <van-divider />
     </div>
+    <van-overlay :show="showLoading" @click="showModalFlag = false" style="display: flex;justify-content: center;align-items: center">
+      <van-loading color="#d44439" />
+    </van-overlay>
   </div>
 </template>
 
@@ -62,17 +65,21 @@
   }
 </style>
 <script lang="ts">
-import {defineComponent, ref} from 'vue';
+import {defineComponent, ref, watch} from 'vue';
 import {getRank} from "@/api/rank";
 import {useRouter} from "vue-router";
+import {Toast} from "vant";
 export default defineComponent({
    name: 'index',
   setup(){
+    const showLoading =ref(false);
+    showLoading.value =true;
      const songs=ref<any>([]);
      const router = useRouter();
      const RankNameList=['飙升榜','新歌榜','热歌榜','原创榜','畅销榜'];
    const _getRankData=async ()=>{
        const {data:{list}} = await getRank();
+     showLoading.value =false;
         const  needList: any[]= [];
         list.forEach((item: any)=>{
           if (RankNameList.includes(item.name)){
@@ -91,9 +98,20 @@ export default defineComponent({
        }
      })
    }
+    watch(showLoading,value => {
+      if (value ===true){
+        setTimeout(()=>{
+          if (value ===true){
+            showLoading.value =false;
+            Toast.fail('网络出错，请重试')
+          }
+        },2000)
+      }
+    })
     return {
       songs,
       gotoColumn,
+      showLoading,
     }
 
   }

@@ -16,7 +16,7 @@
     padding-top: 250px;
     span{
       display: block;
-      color: gray;
+      color: white;
       height: 70px;
       font-size: 34px;
       text-align: center;

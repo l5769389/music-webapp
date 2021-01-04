@@ -12,7 +12,9 @@
           {{item.name}}
       </span>
     </div>
-
+    <van-overlay :show="showLoading" @click="showModalFlag = false" style="display: flex;justify-content: center;align-items: center">
+      <van-loading color="#d44439" />
+    </van-overlay>
   </div>
 </template>
 
@@ -64,12 +66,15 @@
   }
 </style>
 <script lang="ts">
-import {defineComponent, ref} from 'vue';
+import {defineComponent, ref, watch} from 'vue';
 import {useRouter} from "vue-router";
 import {getRecommendList} from "@/api/home";
+import {Toast} from "vant";
 export default defineComponent({
    name: 'recommend',
   setup(){
+    const showLoading =ref(false);
+     showLoading.value =true;
      const router = useRouter();
      const  goToColumn = (id: number)=>{
        router.push({
@@ -83,15 +88,27 @@ export default defineComponent({
      const list = ref([]);
      const _getColumnData = async ()=>{
        const {data} = await getRecommendList();
+       showLoading.value =false;
        list.value =  data.result.map((item: any)=>{
          item.playCount =  Math.floor(item.playCount/10000);
          return item;
        })
      }
      _getColumnData();
+    watch(showLoading,value => {
+      if (value ===true){
+        setTimeout(()=>{
+          if (value ===true){
+            showLoading.value =false;
+            Toast.fail('网络出错，请重试')
+          }
+        },2000)
+      }
+    })
     return {
       goToColumn,
       list,
+      showLoading,
     }
   }
 });
