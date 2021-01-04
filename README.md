@@ -1,4 +1,5 @@
 # music-webapp
+基于vue3.0+vant。数据来源git高星网易云api。
 
 ## Project setup
 ```
