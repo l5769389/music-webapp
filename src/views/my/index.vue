@@ -42,6 +42,7 @@ import Favorite from "@/views/my/favorite.vue";
 import Recent from "@/views/my/recent.vue";
 import {useRoute, useRouter} from "vue-router";
 import {Toast} from "vant";
+
 export default defineComponent({
    name: 'index',
   components: {Recent, Favorite},

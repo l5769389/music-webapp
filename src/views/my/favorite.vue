@@ -13,7 +13,7 @@ export default defineComponent({
   components: {Songlist},
   setup(){
      const store =useStore();
-    const favoriteList = computed(()=>store.getters.getFavoriteList);
+     const favoriteList = computed(()=>store.getters.getFavoriteList);
     return{
       favoriteList,
     }

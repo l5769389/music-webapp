@@ -54,6 +54,9 @@ export default createStore({
       const list: any = state.favoriteList;
       list.unshift(payload);
     },
+    setFavoriteList(state,payload){
+      state.favoriteList = payload;
+    },
     // 移出收藏
     removeFavoriteList(state,payload){
       const list: any = state.favoriteList;
@@ -77,6 +80,9 @@ export default createStore({
         list.unshift(payload);
       }
     },
+    initRecentPlayList(state,payload){
+      state.recentPlayList =payload;
+    }
   },
   getters:{
     getPlayBarShowFlag:(state)=>{

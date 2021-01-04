@@ -267,8 +267,15 @@ export default defineComponent({
     })
     //进入页面设置收藏
     function setStar(){
+      if (readyPlayList.value.length ===0){
+        return ;
+      }
      const index = favoriteList.value.findIndex((item: any)=>{
-        return item.id ===readyPlayList.value[nowPlayingIndex.value].id;
+       if (readyPlayList.value.length ===0){
+         return  -1
+       }else {
+         return item.id ===readyPlayList.value[nowPlayingIndex.value].id;
+       }
       })
       if (index!==-1){
         likeFlag.value=true;
@@ -276,7 +283,6 @@ export default defineComponent({
         likeFlag.value=false;
       }
     }
-    setStar();
     watch([nowPlayingIndex,()=>readyPlayList.value.length],([indexValue,listValue],[preIndex,prelistValue])=> {
         if ( indexValue!== preIndex || listValue!== prelistValue){
           setStar();
